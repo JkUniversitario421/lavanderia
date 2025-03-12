@@ -95,19 +95,18 @@ app.post('/webhook', async (req, res) => {
     }
 
     const userPhone = req.body.queryResult.parameters.phoneNumber || '';
-    let userName = "Usuário";  // Ajuste para obter nome real se possível
+    let userName = "Usuário";  
     let userLastName = "";
 
-    const user = `${userName.trim()} ${userLastName.trim()}`; // Definir usuário corretamente
+    const user = `${userName.trim()} ${userLastName.trim()}`;
     const endTime = currentTime.clone().add(2, 'hours');
 
-    // Adiciona a lavagem ativa no array
     lavagens.push({ user, startTime: currentTime.toISOString(), endTime: endTime.toISOString() });
 
-    console.log('Lavagens ativas após iniciar:', lavagens); // Log para verificar armazenamento correto
+    console.log('Lavagens ativas após iniciar:', lavagens);
 
-    const formattedStartTime = currentTime.format('HH:mm');
-    const formattedEndTime = endTime.format('HH:mm');
+    const formattedStartTime = currentTime.format('HH:mm:ss'); // Inclui segundos
+    const formattedEndTime = endTime.format('HH:mm:ss'); // Inclui segundos
 
     res.json({
         fulfillmentText: `${greeting}, Comando: Iniciar lavagem\nHora de início: *${formattedStartTime}* ⌚\nA lavagem *programada* para terminar às: *${formattedEndTime}* ⏰`,
@@ -124,7 +123,7 @@ app.post('/webhook', async (req, res) => {
         ]
     });
 
-    console.log('Lavagem iniciada:', { user, startTime: currentTime, endTime });
+    console.log('Lavagem iniciada:', { user, startTime: formattedStartTime, endTime: formattedEndTime });
     break;
 }
 
@@ -146,7 +145,6 @@ case 4: {
         const endTime = currentTime;
         const duration = endTime.diff(moment(lastWashing.startTime).tz("America/Sao_Paulo"), 'minutes');
 
-        // Remove lavagem concluída
         lavagens = lavagens.filter(l => l.user !== user);
 
         let feedbackMessage;
@@ -156,11 +154,20 @@ case 4: {
             feedbackMessage = `🎉 Parabéns! Você seguiu o tempo recomendado de lavagem. Obrigado por sua colaboração!`;
         }
 
+        const formattedStartTime = moment(lastWashing.startTime).tz("America/Sao_Paulo").format('HH:mm:ss'); // Agora exibe segundos
+        const formattedEndTime = endTime.format('HH:mm:ss'); // Agora exibe segundos
+
         res.json({
-            fulfillmentText: `Sua lavagem foi finalizada! 🚿\nHora de início: *${moment(lastWashing.startTime).tz("America/Sao_Paulo").format('HH:mm')}*\nHora de término: *${endTime.format('HH:mm')}*\nTempo total de lavagem: *${duration} minutos*.\n\n${feedbackMessage}`
+            fulfillmentText: `Sua lavagem foi finalizada! 🚿\nHora de início: *${formattedStartTime}*\nHora de término: *${formattedEndTime}*\nTempo total de lavagem: *${duration} minutos*.\n\n${feedbackMessage}`
         });
 
-        console.log('Lavagem finalizada:', { startTime: lastWashing.startTime, endTime: endTime.toISOString(), duration, feedbackMessage });
+        console.log('Lavagem finalizada:', { 
+            user,
+            startTime: formattedStartTime,
+            endTime: formattedEndTime,
+            duration,
+            feedbackMessage 
+        });
     } else {
         res.json({
             fulfillmentText: `Não encontrei nenhuma lavagem ativa para você.`
@@ -170,6 +177,7 @@ case 4: {
     }
 
     break;
+
 
 
 }
