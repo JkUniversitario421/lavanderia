@@ -109,7 +109,7 @@ app.post('/webhook', async (req, res) => {
     const formattedEndTime = endTime.format('HH:mm:ss'); // Inclui segundos
 
     res.json({
-        fulfillmentText: `${greeting}, Comando: Iniciar lavagem\nHora de início: *${formattedStartTime}* ⌚\nA lavagem *programada* para terminar às: *${formattedEndTime}* ⏰`,
+        fulfillmentText: `${greeting}, \n Comando: Iniciar lavagem\n Hora de início: *${formattedStartTime}* ⌚\nA lavagem *programada* para terminar às: *${formattedEndTime}* ⏰`,
         outputContexts: [
             {
                 name: `${req.body.session}/contexts/contexto_lavagem_ativa`,
