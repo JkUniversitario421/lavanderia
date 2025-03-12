@@ -132,10 +132,10 @@ case 4: {
     const currentTime = moment().tz("America/Sao_Paulo");
 
     const userPhone = req.body.queryResult.parameters.phoneNumber || '';
-    let userName = "Usuário";  // Manter mesma lógica de nome
+    let userName = "Usuário";  
     let userLastName = "";
 
-    const user = `${userName.trim()} ${userLastName.trim()}`; // Definir usuário corretamente
+    const user = `${userName.trim()} ${userLastName.trim()}`; 
 
     console.log('Buscando lavagem ativa para:', user);
     console.log('Lavagens ativas antes de finalizar:', lavagens);
@@ -149,11 +149,18 @@ case 4: {
         // Remove lavagem concluída
         lavagens = lavagens.filter(l => l.user !== user);
 
+        let feedbackMessage;
+        if (duration > 120) {
+            feedbackMessage = `⚠️ Atenção! Sua lavagem ultrapassou o tempo recomendado de 2 horas. Lembre-se de respeitar o tempo para melhor eficiência.`;
+        } else {
+            feedbackMessage = `🎉 Parabéns! Você seguiu o tempo recomendado de lavagem. Obrigado por sua colaboração!`;
+        }
+
         res.json({
-            fulfillmentText: `Sua lavagem foi finalizada! 🚿\nHora de início: *${moment(lastWashing.startTime).tz("America/Sao_Paulo").format('HH:mm')}*\nHora de término: *${endTime.format('HH:mm')}*\nTempo total de lavagem: *${duration} minutos*.`
+            fulfillmentText: `Sua lavagem foi finalizada! 🚿\nHora de início: *${moment(lastWashing.startTime).tz("America/Sao_Paulo").format('HH:mm')}*\nHora de término: *${endTime.format('HH:mm')}*\nTempo total de lavagem: *${duration} minutos*.\n\n${feedbackMessage}`
         });
 
-        console.log('Lavagem finalizada:', { startTime: lastWashing.startTime, endTime: endTime.toISOString() });
+        console.log('Lavagem finalizada:', { startTime: lastWashing.startTime, endTime: endTime.toISOString(), duration, feedbackMessage });
     } else {
         res.json({
             fulfillmentText: `Não encontrei nenhuma lavagem ativa para você.`
