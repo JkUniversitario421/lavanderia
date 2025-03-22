@@ -37,6 +37,50 @@ app.post('/webhook', async (req, res) => {
     }
 
     switch (option) {
+        case 1: {
+            res.json({
+                fulfillmentText: `Siga as dicas para uma boa utilização pelo link:\nhttps://youtu.be/2O_PWz-0qic`
+            });
+            break;
+        }
+        case 2: {
+            res.json({
+                fulfillmentText: `
+                    🔧🛠️🔩🧰🔧🛠️🔩🧰
+                    INFORMAÇÕES TÉCNICAS
+                    - Lavadora de Roupas Electrolux
+                    - Capacidade: *8,5Kg*
+                    - Modelo: LT09E Top Load Turbo Agitação Super
+                    - Programas de Lavagem: 9
+                    - Níveis de Água: 4
+                    - Cor: Branca
+
+                    CARACTERÍSTICAS
+                    - Capacidade *(kg de roupas)*: *8,5Kg*
+                    - Acesso ao cesto: *Superior*
+                    - Água quente: *Não*
+                    - Enxágues: *1*    
+                    - Centrifugação: *Sim* 
+                    - Dispenser para sabão: *Sim*
+                    - Dispenser para amaciante: *Sim*
+                    - Dispenser para alvejante: *Sim*
+                    - Elimina fiapos: *Sim - através do filtro*
+                    - Níveis de água: *Extra, Baixo, Médio, Alto*
+
+                    ESPECIFICAÇÕES TÉCNICAS
+                    - Consumo: (kWh) *0,25kWh/ciclo*
+                    - Controles: *Eletromecânicos*  
+                    - Velocidade de centrifugação: *(rpm)* *660*
+                    - Tensão/Voltagem: *220V* 
+                    - Acabamento do cesto: *Polipropileno*
+                    - Consumo de Energia: *A (menos 25% de consumo)*
+                    - Consumo de água: *112 litros por ciclo*
+                    - Eficiência Energética: *A*
+
+                    Uma boa lavagem! 🔧🛠️🔩🧰🔧🛠️🔩🧰 `
+            });
+            break;
+        }
         case 3: {
             const currentTime = moment().tz("America/Sao_Paulo");
             const endTime = currentTime.clone().add(2, 'hours');
