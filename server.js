@@ -109,7 +109,7 @@ app.post('/webhook', async (req, res) => {
             } else {
                 res.json({
                     fulfillmentText: `Você saiu da fila de lavagem às *${currentTime.format('HH:mm:ss')}*.` // Incluindo os segundos
-            }
+                });
             break;
         }
 
