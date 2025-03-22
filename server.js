@@ -152,6 +152,7 @@ app.post('/webhook', async (req, res) => {
             });
             break;
 
+        }
         case 3: {
             const currentTime = moment().tz("America/Sao_Paulo");
             const endTime = currentTime.clone().add(2, 'hours');
