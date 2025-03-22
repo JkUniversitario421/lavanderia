@@ -91,7 +91,7 @@ app.post('/webhook', async (req, res) => {
             }, 115 * 60 * 1000); 
 
             res.json({
-                fulfillmentText: `Lavagem iniciada! ⏳\nHora de início: *${currentTime.format('HH:mm')}*\nTermina às: *${endTime.format('HH:mm')}* 🕑`
+                fulfillmentText: `Lavagem iniciada! ⏳\nHora de início: *${currentTime.format('HH:mm:ss')}*\n Programada para terminar às: *${endTime.format('HH:mm:ss')}* 🕑`
             });
             break;
         }
@@ -102,12 +102,13 @@ app.post('/webhook', async (req, res) => {
             if (lavagem) {
                 const duration = currentTime.diff(moment(lavagem.startTime), 'minutes');
                 lavagens = lavagens.filter(l => l.user !== user);
-                let aviso = duration > 120 ? `⚠️ Sua lavagem passou de 2 horas!` : `✅ Lavagem finalizada dentro do tempo recomendado.`;
+                let aviso = duration > 120 ? `⚠️ Atenção! Sua lavagem ultrapassou o tempo recomendado de 2 horas. Lembre-se de respeitar o tempo para melhor eficiênc` : `🎉 Parabéns! Você seguiu o tempo recomendado de lavagem. Obrigado por sua colaboração`;
                 res.json({
                     fulfillmentText: `Lavagem finalizada! 🏁\nDuração: *${duration} minutos*\n${aviso}`
                 });
             } else {
-                res.json({ fulfillmentText: `Nenhuma lavagem ativa encontrada para você.` });
+                res.json({
+                    fulfillmentText: `Você saiu da fila de lavagem às *${currentTime.format('HH:mm:ss')}*.` // Incluindo os segundos
             }
             break;
         }
@@ -158,7 +159,7 @@ app.post('/webhook', async (req, res) => {
 
 
                 const MAX_WEIGHT = 6000; // Limite de peso em gramas
-                const MAX_COMBINATIONS = 20;
+                const MAX_COMBINATIONS = 7;
 
                 function calculateTotalWeight(combination) {
                     return combination.reduce((total, currentItem) => total + currentItem.weight, 0);
