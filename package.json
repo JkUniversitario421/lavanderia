@@ -19,7 +19,8 @@
     "fastify": "^4.28.1",
     "googleapis": "^140.0.1",
     "handlebars": "^4.7.8",
-    "moment-timezone": "^0.5.45"
+    "moment-timezone": "^0.5.45",
+    "mongodb": "^4.0.0"
   },
   "engines": {
     "node": "18.x"
