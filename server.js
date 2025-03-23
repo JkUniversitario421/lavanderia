@@ -270,8 +270,8 @@ app.post('/webhook', async (req, res) => {
             });
             break;
 
-        default:
-            res.json({ fulfillmentText: 'Opção inválida. Escolha um número do menu.' });
+        //default:
+            //res.json({ fulfillmentText: 'Opção inválida. Escolha um número do menu.' });
     }
 });
 
