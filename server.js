@@ -15,6 +15,7 @@ let lavagens = [];
 
 // URI do MongoDB
 const uri = process.env.MONGO_URI || "mongodb+srv://jkuniversitario421:M%40iden25654545@cluster0.jz5ul.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
 const client = new MongoClient(uri, {
     serverApi: {
         version: ServerApiVersion.v1,
