@@ -35,9 +35,14 @@ async function criarUsuario(telefone, nome) {
             return 'Usuário já existe!';
         }
 
-        // Inserir o novo usuário
-        await usuariosCollection.insertOne({ telefone, nome });
-        return `Usuário ${nome} criado com sucesso!`;
+        // Inserir o novo usuário e verificar se foi bem-sucedido
+        const result = await usuariosCollection.insertOne({ telefone, nome });
+
+        if (result.acknowledged && result.insertedId) {
+            return `Usuário ${nome} criado com sucesso! ID: ${result.insertedId}`;
+        } else {
+            return 'Falha ao criar usuário!';
+        }
     } catch (error) {
         console.error('Erro ao criar usuário:', error);
         return 'Erro ao criar usuário!';
