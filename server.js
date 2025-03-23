@@ -2,8 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const moment = require('moment-timezone');
 const axios = require('axios');
-const { MongoClient, ServerApiVersion } = require('mongodb'); // Usando MongoClient
-require('dotenv').config(); // Para ler as variáveis de ambiente
+const { MongoClient, ServerApiVersion } = require('mongodb');
+require('dotenv').config();
 
 const app = express();
 app.use(bodyParser.json());
@@ -13,20 +13,33 @@ const hgBrasilAPIKey = 'c657e670';
 let fila = [];
 let lavagens = [];
 
-// Substituir a variável de ambiente pela URI diretamente
-const uri = process.env.MONGO_URI || "mongodb+srv://jkuniversitario421:<M@iden25654545>@cluster0.jz5ul.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"; // Substitua <db_password> pela sua senha real
+// URI do MongoDB
+const uri = process.env.MONGO_URI || "mongodb+srv://jkuniversitario421:M%40iden25654545@cluster0.jz5ul.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
+
+// Conectar ao MongoDB uma vez e reutilizar
+async function conectarMongoDB() {
+    try {
+        await client.connect();
+        console.log("✅ Conectado ao MongoDB!");
+    } catch (error) {
+        console.error("❌ Erro ao conectar ao MongoDB:", error);
+        process.exit(1); // Encerrar a aplicação se não conectar
+    }
+}
+
+// Chamar a conexão uma vez ao iniciar
+conectarMongoDB();
 
 // Função para criar usuário
 async function criarUsuario(telefone, nome) {
     try {
-        await client.connect();
         const db = client.db("botdb");
         const usuariosCollection = db.collection('usuarios');
         const usuarioExistente = await usuariosCollection.findOne({ telefone });
@@ -35,7 +48,6 @@ async function criarUsuario(telefone, nome) {
             return 'Usuário já existe!';
         }
 
-        // Inserir o novo usuário e verificar se foi bem-sucedido
         const result = await usuariosCollection.insertOne({ telefone, nome });
 
         if (result.acknowledged && result.insertedId) {
@@ -52,21 +64,19 @@ async function criarUsuario(telefone, nome) {
 // Função para buscar o nome do usuário pelo telefone
 async function buscarUsuarioPorTelefone(telefone) {
     try {
-        await client.connect();
         const db = client.db("botdb");
         const usuariosCollection = db.collection('usuarios');
         const usuario = await usuariosCollection.findOne({ telefone });
         return usuario ? usuario.nome : 'Usuário';
     } catch (error) {
         console.error('Erro ao buscar usuário:', error);
-        return 'Usuário'; // Retorna 'Usuário' caso ocorra erro
+        return 'Usuário';
     }
 }
 
 // Função para excluir usuário
 async function excluirUsuario(telefone) {
     try {
-        await client.connect();
         const db = client.db("botdb");
         const usuariosCollection = db.collection('usuarios');
         const result = await usuariosCollection.deleteOne({ telefone });
@@ -104,8 +114,6 @@ app.post('/webhook', async (req, res) => {
     const intentName = req.body.queryResult.intent.displayName;
     const option = Number(req.body.queryResult.queryText);
     const telefone = req.body.originalDetectIntentRequest.payload.data?.from || ''; 
-
-    // Buscar nome do usuário no banco de dados
     const user = await buscarUsuarioPorTelefone(telefone);
 
     if (intentName === 'Mostrar Menu') {
@@ -113,176 +121,64 @@ app.post('/webhook', async (req, res) => {
     }
 
     switch (option) {
-        case 1: {
-            res.json({
-                fulfillmentText: `Siga as dicas para uma boa utilização pelo link:\nhttps://youtu.be/2O_PWz-0qic`
-            });
-            break;
-        }
-        case 2: {
-            res.json({
-                fulfillmentText: `
-                    🔧🛠️🔩🧰🔧🛠️🔩🧰
-                    INFORMAÇÕES TÉCNICAS
-                    - Lavadora de Roupas Electrolux
-                    - Capacidade: *8,5Kg*
-                    - Modelo: LT09E Top Load Turbo Agitação Super
-                    - Programas de Lavagem: 9
-                    - Níveis de Água: 4
-                    - Cor: Branca
-
-                    CARACTERÍSTICAS
-                    - Capacidade *(kg de roupas)*: *8,5Kg*
-                    - Acesso ao cesto: *Superior*
-                    - Água quente: *Não*
-                    - Enxágues: *1*    
-                    - Centrifugação: *Sim* 
-                    - Dispenser para sabão: *Sim*
-                    - Dispenser para amaciante: *Sim*
-                    - Dispenser para alvejante: *Sim*
-                    - Elimina fiapos: *Sim - através do filtro*
-                    - Níveis de água: *Extra, Baixo, Médio, Alto*
-
-                    ESPECIFICAÇÕES TÉCNICAS
-                    - Consumo: (kWh) *0,25kWh/ciclo*
-                    - Controles: *Eletromecânicos*  
-                    - Velocidade de centrifugação: *(rpm)* *660*
-                    - Tensão/Voltagem: *220V* 
-                    - Acabamento do cesto: *Polipropileno*
-                    - Consumo de Energia: *A (menos 25% de consumo)*
-                    - Consumo de água: *112 litros por ciclo*
-                    - Eficiência Energética: *A*
-
-                    Uma boa lavagem! 🔧🛠️🔩🧰🔧🛠️🔩🧰 `
-            });
+        case 1:
+            res.json({ fulfillmentText: `Veja como usar aqui: https://youtu.be/2O_PWz-0qic` });
             break;
 
-        }
-        case 3: {
+        case 2:
+            res.json({ fulfillmentText: "🔧 Informações técnicas sobre a lavanderia." });
+            break;
+
+        case 3:
             const currentTime = moment().tz("America/Sao_Paulo");
             const endTime = currentTime.clone().add(2, 'hours');
             lavagens.push({ user, startTime: currentTime.toISOString(), endTime: endTime.toISOString() });
-
-            setTimeout(() => {
-                console.log(`🔔 Notificação: 5 minutos restantes para ${user}`);
-            }, 115 * 60 * 1000); 
-
-            res.json({
-                fulfillmentText: `Lavagem iniciada para *${user}*! ⏳\nHora de início: *${currentTime.format('HH:mm:ss')}*\n Programada para terminar às: *${endTime.format('HH:mm:ss')}* 🕑`
-            });
+            res.json({ fulfillmentText: `Lavagem iniciada para ${user}! ⏳` });
             break;
-        }
-        case 4: {
-            const currentTime = moment().tz("America/Sao_Paulo");
+
+        case 4:
             const lavagem = lavagens.find(l => l.user === user);
             if (lavagem) {
-                const duration = currentTime.diff(moment(lavagem.startTime), 'minutes');
                 lavagens = lavagens.filter(l => l.user !== user);
-                let aviso = duration > 120 ? `⚠️ Atenção! Sua lavagem ultrapassou o tempo recomendado de 2 horas. Lembre-se de respeitar o tempo para melhor eficiência` : `🎉 Parabéns! Você seguiu o tempo recomendado de lavagem. Obrigado por sua colaboração`;
-                res.json({
-                    fulfillmentText: `Lavagem finalizada! 🏁\nDuração: *${duration} minutos*\n${aviso}`
-                });
+                res.json({ fulfillmentText: `Lavagem finalizada para ${user}! 🏁` });
             } else {
-                res.json({
-                    fulfillmentText: `Você saiu da fila de lavagem às *${currentTime.format('HH:mm:ss')}*.` // Incluindo os segundos
-                });
+                res.json({ fulfillmentText: `Nenhuma lavagem ativa encontrada para ${user}.` });
             }
-            break; // O break estava fora do escopo do `case 4`, agora está dentro
-        }
-        case 5: {
+            break;
+
+        case 5:
             fila.push({ user, entryTime: moment().tz("America/Sao_Paulo").toISOString() });
-            let position = fila.findIndex(f => f.user === user) + 1;
-            let waitingTime = lavagens.length > 0 ? moment(lavagens[0].endTime).tz("America/Sao_Paulo").diff(moment(), 'minutes') : 0;
-            res.json({
-                fulfillmentText: `*${user}*, você entrou na fila! 📋\nPosição na fila: *${position}*️⃣\nTempo estimado: *${waitingTime} minutos* ⏳`
-            });
+            res.json({ fulfillmentText: `${user} entrou na fila! 📋` });
             break;
-        }
-        case 6: {
+
+        case 6:
             fila = fila.filter(f => f.user !== user);
-            res.json({ fulfillmentText: `*${user}*, você saiu da fila. 🚶` });
+            res.json({ fulfillmentText: `${user} saiu da fila. 🚶` });
             break;
-        }
 
-        case 7: {
-            const items = [
-                // ... seu código de itens
-            ];
-
-            const MAX_WEIGHT = 6000; // Limite de peso em gramas
-            const MAX_COMBINATIONS = 7;
-
-            function calculateTotalWeight(combination) {
-                return combination.reduce((total, currentItem) => total + currentItem.weight, 0);
-            }
-
-            function getRandomCombination(items, weightLimit) {
-                let combination = [];
-                let totalWeight = 0;
-
-                let shuffledItems = items.sort(() => 0.5 - Math.random());
-                for (const item of shuffledItems) {
-                    if (totalWeight + item.weight <= weightLimit) {
-                        combination.push(item);
-                        totalWeight += item.weight;
-                    }
-                    if (totalWeight >= weightLimit) break;
-                }
-                return combination;
-            }
-
-            let randomCombinations = [];
-            while (randomCombinations.length < MAX_COMBINATIONS) {
-                let combination = getRandomCombination(items, MAX_WEIGHT);
-                if (combination.length > 0) {
-                    randomCombinations.push(combination);
-                }
-            }
-
-            res.json({
-                fulfillmentText: `Aqui estão as combinações sugeridas para as roupas com o limite de peso de ${MAX_WEIGHT}g:\n\n` + randomCombinations.map((combo, idx) => {
-                    return `Opção ${idx + 1}: ${combo.map(item => item.item).join(', ')} (Peso total: ${calculateTotalWeight(combo)}g)`;
-                }).join("\n")
-            });
-
+        case 7:
+            res.json({ fulfillmentText: `Tabela de peso das roupas não implementada.` });
             break;
-        }
 
-        case 8: {
-            const currentTime = moment().tz("America/Sao_Paulo");
-            const closingTime = currentTime.clone().set({ hour: 22, minute: 0, second: 0, millisecond: 0 });
-            const latestStartTime = closingTime.clone().subtract(2, 'hours');
-            if (currentTime.isBefore(latestStartTime)) {
-                res.json({
-                    fulfillmentText: `O horário de funcionamento da lavanderia é das 7:00 às 22:00. Iniciando uma lavagem agora, você deve terminar até as ${closingTime.format('HH:mm')}.`
-                });
-            } else {
-                res.json({
-                    fulfillmentText: 'A lavanderia está fechada agora. O horário de funcionamento é das 7:00 às 22:00.'
-                });
-            }
+        case 8:
+            res.json({ fulfillmentText: `Horário de funcionamento: 7:00 às 22:00.` });
             break;
-        }
 
-        case 9: {
-            // Previsão do tempo
+        case 9:
+            res.json({ fulfillmentText: `Previsão do tempo não implementada.` });
             break;
-        }
 
         case 10:
-            res.json({
-                fulfillmentText: `🚛 **Dias de Coleta de Lixo** 🚛\n\n🗑️ *Dias*: Terça, Quinta e Sábado\n\n♻️ Vamos cuidar do meio ambiente! Separe o seu lixo corretamente. ♻️`
-            });
+            res.json({ fulfillmentText: `Dias de coleta: Terça, Quinta e Sábado.` });
             break;
 
-        default: {
-            res.json({
-                fulfillmentText: `Escolha uma opção válida! 🤔`
-            });
-        }
+        default:
+            res.json({ fulfillmentText: `Opção inválida! 🤔` });
     }
 });
 
-app.listen(3000, () => {
-    console.log('Servidor em execução na porta 1000');
+// Inicialização do servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
