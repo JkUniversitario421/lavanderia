@@ -158,7 +158,7 @@ app.post('/webhook', async (req, res) => {
             break;
 
         }
-        case 3: {
+        /*case 3: {
             const currentTime = moment().tz("America/Sao_Paulo");
             const endTime = currentTime.clone().add(2, 'hours');
             lavagens.push({ user, startTime: currentTime.toISOString(), endTime: endTime.toISOString() });
@@ -171,7 +171,36 @@ app.post('/webhook', async (req, res) => {
                 fulfillmentText: `Lavagem iniciada para *${user}*! ⏳\nHora de início: *${currentTime.format('HH:mm:ss')}*\n Programada para terminar às: *${endTime.format('HH:mm:ss')}* 🕑`
             });
             break;
-        }
+        }*/
+
+     case 3: {
+    const currentTime = moment().tz("America/Sao_Paulo");
+    const endTime = currentTime.clone().add(2, 'hours');
+    lavagens.push({ user, startTime: currentTime.toISOString(), endTime: endTime.toISOString() });
+
+    setTimeout(() => {
+        console.log(`🔔 Notificação: 5 minutos restantes para ${user}`);
+    }, 115 * 60 * 1000); 
+
+    // Formatar horários
+    const formattedStartTime = currentTime.format('HH:mm:ss');
+    const formattedEndTime = endTime.format('HH:mm');
+
+    // Número de WhatsApp
+    const phoneNumber = "+16502234435";
+    
+    // Mensagem personalizada para WhatsApp
+    const message = `Lembre-se de finalizar minha lavagem às ${formattedEndTime}`;
+    
+    // Gerar o link para WhatsApp com a mensagem formatada
+    const whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+
+    res.json({
+        fulfillmentText: `Lavagem iniciada! ⏳\nHora de início: *${formattedStartTime}*\nProgramada para terminar às: *${formattedEndTime}* 🕑\n\n📲 Para receber um lembrete no WhatsApp, clique no link abaixo:\n${whatsappLink}`
+    });
+    break;
+            }
+               
         case 4: {
             const currentTime = moment().tz("America/Sao_Paulo");
             const lavagem = lavagens.find(l => l.user === user);
